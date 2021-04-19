@@ -1,0 +1,65 @@
+---
+title: "Features_Maps"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, message = FALSE, warning = FALSE, echo=FALSE}
+## Run / Install before executing slides
+
+# Load packages.
+library(ggplot2)    # the king of plotting 
+library(magrittr)   # chain operators, e.g. to "pipe" a value forward
+library(stats)
+library(manifestoR)
+library(readtext)
+library(SnowballC)
+library(tidyr)
+library(tidytext)      # for data manipulation 
+library(qdapDictionaries)
+library(base64enc)
+#install.packages("ggridges",dependencies =TRUE)
+library(tidyverse)
+library(RColorBrewer)
+#install.packages("wesanderson")
+library(wesanderson)
+library(rtweet)
+library(ggmap)
+```
+
+```{r, echo=FALSE}
+# Read in the Tweets
+Tweets <- readRDS("Studentloan_tweets.RDS")
+```
+
+```{r, echo=TRUE, eval=TRUE}
+#usethis::edit_r_environ()   # open your R environ package
+# Sets googlemap with API key
+register_google(key = "AIza....", write = TRUE)
+```
+
+```{r, echo=FALSE}
+#glimpse(Tweets)
+#select columns, fill empty cells with NA
+studentloan_tweets <- Tweets %>%
+  select(screen_name, text, display_text_width, favorite_count, hashtags, quoted_name,quoted_followers_count,location, followers_count, favourites_count) %>%
+  mutate_if(is.character, list(~na_if(.,""))) %>% 
+  filter(!is.na(location))
+
+# #run geocode function through every row, save to dataframe
+
+discard(studentloan_tweets$location, `==`, "") %>%
+  ggmap::geocode() -> coded
+
+coded$location <- discard(studentloan_tweets$location, `==`, "")
+
+studentloan_tweets <- left_join(studentloan_tweets, coded, "location")
+```
+
+```{r, echo=FALSE}
+#Geocoded Tweets with selected columns
+saveRDS(studentloan_tweets, "StuLoanTweets_geocoded.RDS")
+```

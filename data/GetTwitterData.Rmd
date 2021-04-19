@@ -1,0 +1,139 @@
+---
+title: "GetTwitterData"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, message = FALSE, warning = FALSE, echo=FALSE}
+## Run / Install before executing slides
+
+# Load packages.
+library(ggplot2)    # the king of plotting 
+library(magrittr)   # chain operators, e.g. to "pipe" a value forward
+library(stats)
+library(manifestoR)
+library(readtext)
+library(SnowballC)
+library(tidyr)
+library(tidytext)      # for data manipulation 
+library(qdapDictionaries)
+library(base64enc)
+#install.packages("ggridges",dependencies =TRUE)
+library(tidyverse)
+library(RColorBrewer)
+#install.packages("wesanderson")
+library(wesanderson)
+```
+
+Get Twitter API Access
+```{r, echo=FALSE}
+library(rtweet)
+twitter_token <- create_token(
+  app = "higher_ed_group_g",
+  consumer_key = Sys.getenv("TWITTER_KEY"),
+  consumer_secret = Sys.getenv("TWITTER_SECRET"),
+  access_token = Sys.getenv("TWITTER_ACCESS_TOKEN"),
+  access_secret = Sys.getenv("TWITTER_ACCESS_TOKEN_SECRET"))
+```
+
+#PRO Canceling Student Loan
+```{r, echo=FALSE}
+#usethis::edit_r_environ()
+# #check token
+# twitter_token 
+
+#get tweets that mentions student loan/ student debt
+topic_tweets <- search_tweets(q = "student loan OR student debt",
+                               n = 3200,
+                               include_rts = FALSE)
+
+#get tweets that mentions student loan/ student debt
+hashtag_tweets <- search_tweets(q = "#Cancelstudentdebt OR #Cancelstudentloan OR #Studentloanforgiveness",
+                               n = 3200,
+                               include_rts = FALSE)
+```
+
+```{r, echo=FALSE}
+ 
+#get tweets that mentions student loan/ student debt
+StudentDebt <- search_tweets(q = "#studentdebt",
+                               n = 3200,
+                               include_rts = FALSE)  
+```
+
+```{r, echo=FALSE}
+#save to RDS
+saveRDS(hashtag_tweets, "hashtag_cancelStudentDebt.RDS")
+
+```
+
+```{r, echo=FALSE}
+binded1 <- bind_rows(topic_tweets, hashtag_tweets)
+```
+
+###Collecting more tweets by looking at top hashtags usedin conjunction with the most popular tags
+```{r, echo=FALSE}
+#Top Hashtags used in conjunction with #cancelstudentdebt
+hashtags <- unnest(binded, hashtags) %>% 
+  mutate(hashtags = tolower(hashtags)) %>% 
+  count(hashtags, sort=TRUE) %>% 
+  filter(hashtags != "cancelstudentdebt") 
+
+hashtags
+```
+
+###Collecting more tweets by looking at accouts that used #cancestudentdebt the most?
+```{r, echo=FALSE}
+#Top Accounts used #cancelstudentdebt
+Accounts <- unnest(binded, hashtags) %>% 
+  mutate(hashtags = tolower(hashtags)) %>%
+  filter(hashtags=="cancelstudentdebt") %>% 
+  count(screen_name, sort=TRUE)
+
+Accounts
+```
+
+#More hashtags related to Canceling Student Loan
+```{r, echo=FALSE}
+
+#get tweets that mentions #dontcancelstudentdebt
+cancel2 <- search_tweets(q = "#cancelstudentloandebt",
+                               n = 3200,
+                               include_rts = FALSE)  
+
+cancel3<- search_tweets(q = "#cancelstudentloandebt",
+                               n = 3200,
+                               include_rts = FALSE)
+
+cancel4<- search_tweets(q = "#helpmiddleclassamericans",
+                               n = 3200,
+                               include_rts = FALSE)
+
+cancel5<- search_tweets(q = "#zeropercentintereststudentloans",
+                               n = 3200,
+                               include_rts = FALSE)
+
+BorrowerDef <- search_tweets(q = "borrower defense",
+                               n = 3200,
+                               include_rts = FALSE)  
+
+Loanforgive <- search_tweets(q = "loan forgiveness",
+                               n = 3200,
+                               include_rts = FALSE)
+```
+
+```{r, echo=FALSE}
+binded <- bind_rows(topic_tweets, hashtag_tweets, cancel2, cancel3, cancel4, cancel5, StudentDebt, BorrowerDef, Loanforgive) %>% 
+  distinct() #get ride of repeated rows
+
+```
+
+```{r, echo=FALSE}
+#save to RDS
+saveRDS(binded, "Studentloan_tweets.RDS")
+```
+
+

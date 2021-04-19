@@ -1,0 +1,152 @@
+---
+title: "TweetTextAnalysis"
+author: "Zhirui Luo"
+date: "4/13/2021"
+output: html_document
+---
+
+```{r}
+tweets <- readRDS("~/Dropbox (Business)/Spring 2021/QMSS 5063 - Data Visualization /Group_G_HigherEd/Twitter/src/Data/Studentloan_tweets.RDS")
+#tweets <- readRDS("C:/Users/Ariel/Desktop/Group_G_HigherEd/Twitter/src/Data/Studentloan_tweets.RDS")
+```
+
+```{r}
+library(tidytext)
+library(tm)
+library(quanteda)
+library(dplyr)
+```
+
+#### WordCloud to see the frequency of the words
+
+```{r}
+gsub("https\\S*", "", tweets$text) 
+gsub("@\\S*", "", tweets$text)
+```
+
+```{r}
+twt_corpus <- Corpus(VectorSource(tweets$text))
+text <- twt_corpus %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(stripWhitespace)
+text <- tm_map(text, removeWords, stopwords("english"))
+```
+
+```{r}
+dtm <- TermDocumentMatrix(text) 
+matrix <- as.matrix(dtm) 
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+df <- data.frame(word = names(words),freq=words)
+```
+
+```{r}
+library(wordcloud)
+set.seed(1234)
+wordcloud(words = df$word, freq = df$freq, min.freq = 1,max.words=200, random.order=FALSE, rot.per=0.35, colors=brewer.pal(8, "Dark2"))
+```
+
+Here the word cloud showed the frequency of word within the Twitter, where the term 'student' is the one that mentioned most.
+
+
+#### Sentiment Analysis (using Bing)
+
+```{r}
+cleaned_twt<-tweets%>%
+  select(text)%>%
+  unnest_tokens(word, text)%>%
+  anti_join(stop_words)
+```
+
+```{r}
+library(ggplot2)
+library(textdata)
+senti <- get_sentiments("bing") %>% filter(word!="debt")
+bing <- cleaned_twt%>%
+  inner_join(senti)%>%
+  count(word,sentiment, sort=TRUE)%>%
+  ungroup()
+bing%>%
+  group_by(sentiment)%>%
+  top_n(10)%>%
+  mutate(word=reorder(word,n))%>%
+  ggplot(aes(word,n,fill=sentiment))+
+  geom_col(show.legend=FALSE)+
+  facet_wrap(~sentiment,scale="free_y")+
+  labs(title='Tweets Related to Student Debt',
+       y='Contribution to Sentiment')+
+  coord_flip()+
+  theme_bw()
+```
+
+###Positive & Negative Sentiment through time
+```{r}
+cleaned_time<-tweets%>%
+  select(created_at, text)%>%
+  unnest_tokens(word, text)%>%
+  anti_join(stop_words)
+```
+
+```{r}
+pos_twt<-cleaned_time%>%
+  inner_join(senti)%>%
+  filter(sentiment=='positive')%>%
+  count(created_at,sentiment)
+ggplot(pos_twt,aes(x=created_at,y=n))+
+  geom_line(color="orange")+
+    theme_minimal()+
+      ylab("Frequency of Positive Words on Twitter")+
+        xlab("Date")
+```
+
+```{r}
+neg_twt<-cleaned_time%>%
+  inner_join(senti)%>%
+  filter(sentiment=='negative')%>%
+  count(created_at,sentiment)
+ggplot(neg_twt,aes(x=created_at,y=n))+
+  geom_line(color="purple")+
+    theme_minimal()+
+      ylab("Frequency of Negative Words on Twitter")+
+        xlab("Date")
+```
+
+```{r}
+twt_time<-merge(pos_twt,neg_twt,by='created_at')
+
+names(twt_time)[names(twt_time) == "sentiment.x"] <- "Positive"
+names(twt_time)[names(twt_time) == "sentiment.y"] <- "Negative"
+
+names(twt_time)[names(twt_time) == "n.x"] <- "n_Positive"
+names(twt_time)[names(twt_time) == "n.y"] <- "n_Negative"
+
+ggplot(twt_time,aes(x=created_at))+
+  geom_line(aes(y = n_Positive), color = "orange") + 
+  geom_line(aes(y = n_Negative), color = "purple")+
+  theme_minimal()+
+  labs(title='Sentiment Words Distribution Over Time',
+       y='Frequency of Sentiment Words',
+       x='Date')
+
+```
+
+To know more about the condition of student debt in US, we started with investigating the relationship between the school selectivity and median of student debt: 
+
+(Selectivity graph)
+
+With the admission rate increase, the schools that are less selective tend to have less median student debt.
+
+Other than the school selectivity, the family social-economic status is also an important factor that related to student debt. Here we take a look for the relationship between student loan repayment rate and the family income group across the years.
+
+(Income status graph)
+
+Other than the numerical evidence showed above, the mass public's voice towards the student debt and its cancellation on Twitter has also been viewed. Bascially speaking, the frequency of words among the tweets is as the word cloud showed below:
+
+(Word Cloud)
+
+To understand the expression with more detail across the US, we draw a map that containing the sentiment score and top frequency words by states, showing as below. The map also contained the location of school, presenting the potential relationship between sentiment and school selectivity:
+
+(map view the tweets by State)  
+
+
+

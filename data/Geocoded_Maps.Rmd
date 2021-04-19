@@ -1,0 +1,81 @@
+---
+title: "Geocoded_Maps"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, message = FALSE, warning = FALSE, echo=FALSE}
+## Run / Install before executing slides
+
+# Load packages.
+library(ggplot2)    # the king of plotting 
+library(magrittr)   # chain operators, e.g. to "pipe" a value forward
+library(stats)
+library(manifestoR)
+library(readtext)
+library(SnowballC)
+library(tidyr)
+library(tidytext)      # for data manipulation 
+library(qdapDictionaries)
+library(base64enc)
+#install.packages("ggridges",dependencies =TRUE)
+library(tidyverse)
+library(RColorBrewer)
+#install.packages("wesanderson")
+library(wesanderson)
+library(rtweet)
+library(ggmap)
+library(sp)
+library(leaflet)
+```
+
+```{r, echo=FALSE}
+# Read in the Tweets
+Geotweets <- readRDS("StuLoanTweets_geocoded.RDS") %>% 
+  filter(!is.na(lon)) %>% 
+  distinct()
+library(maps)
+
+```
+
+```{r, echo=TRUE, eval=TRUE}
+content2 <- paste("User:",Geotweets$screen_name,"<br/>",
+                 "Tweet:",Geotweets$text,"<br/>",
+                 "Where:",Geotweets$location,"<br/>",
+                 "Hashtags:",Geotweets$hashtags,"<br/>")
+
+#pal = colorFactor("PuOr", domain = Geotweets$hashtags) # Grab a palette
+#color_Hashtag = pal(Geotweets$hashtags)
+
+TweetsCluster <- leaflet(Geotweets) %>% 
+  addTiles('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png') %>% 
+  addCircleMarkers(popup = content2,
+                   clusterOptions = markerClusterOptions()) %>% 
+  addLayersControl(overlayGroups = c("cities"), 
+                   options = layersControlOptions(collapsed = FALSE)) 
+
+TweetsCluster  # Print the map
+```
+```{r, echo=FALSE}
+#Reverse Geocode to extract state/county with the function map.where from the maps package
+library(maps)
+
+#Here I used two maps of the package; state and county
+Geotweets$state<-map.where(database="state", 
+                         Geotweets$lon, Geotweets$lat)
+Geotweets$county<-map.where(database="county", 
+                        Geotweets$lon, Geotweets$lat) #sadly doesn't have state info for New York
+
+Geotweets <- Geotweets %>%
+  mutate(location = replace(location, str_detect(location, "New York|\\sNY|NYC"), "New York")) %>% #use RegEx to replace all New york related locations with "New York"
+  mutate(state=ifelse(location=="New York","new york", state)) %>%  #replace "na" in state with New York for New York twitter users
+  filter(!is.na(state))
+```
+
+```{r, echo=FALSE}
+#Geocoded Tweets with selected columns
+saveRDS(Geotweets, "Geotweets_state_clened.RDS")
+```
