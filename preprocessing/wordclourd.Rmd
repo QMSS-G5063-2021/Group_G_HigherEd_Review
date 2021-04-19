@@ -1,3 +1,5 @@
+
+```{r}
 Tweets_state <- readRDS('../data/Geotweets_state_cleaned.RDS') %>%
   mutate(id=row_number())
 
@@ -39,3 +41,14 @@ tweets_tidy_wc <- tweets_tidy %>%
   arrange(desc(n)) %>%
   filter(! term %in% c("student","loan","debt","cancelstudentdebt","amp","forgiveness","like","can","just","get","will"))%>% 
   rename(word=term, freq=n)
+
+
+tweets_tidy_wc <- tweets_tidy %>%
+  group_by(term) %>%
+  summarize(n = sum(count)) %>%
+  arrange(desc(n)) %>%
+  filter(! term %in% c("student","loan","debt","cancelstudentdebt","amp","forgiveness","like","can","just","get","will"))%>% 
+  rename(word=term, freq=n)
+
+saveRDS(tweets_tidy_wc, file = "../data/tweets_tidy_wc.RDS")
+```

@@ -71,8 +71,8 @@ sc <- sc_time %>% filter(Year_Ending == 2019)%>%
     TRUE ~ 'not selective')) %>% mutate(uni_rank = factor(uni_rank, levels=c('not selective', 'less selective', 'selective', 'more selective', 'highly selective/elite')))
 
 ###Tweets Data
-Tweets_state <- readRDS('data/Geotweets_state_cleaned.RDS') %>%
-  mutate(id=row_number())
+#Tweets_state <- readRDS('data/Geotweets_state_cleaned.RDS') %>%
+#  mutate(id=row_number())
 
 SearchTrend <- read_csv('data/SearchTrend.csv', col_names = TRUE, skip = 2) %>%
   rename(Total_Searches = 'student loan forgiveness: (United States)') %>%
@@ -241,50 +241,12 @@ Trend <- ggplot(SearchTrend,aes(x=Month, y=Total_Searches,group=1)) +
         plot.title = element_text(hjust=0.5))
 
 ### Figure 2: <Tweets Keywords>
-# Use tm package convert dataframe to corpus:
-doc_id = c(1:4619)
-text_df <- data.frame(doc_id, text = Tweets_state$text, stringsAsFactors = FALSE)
-
-# Convert example_text to a corpus: Success_corpus
-tweets_corpus <- VCorpus(DataframeSource(text_df))
-
-corpus <- tm_map(tweets_corpus, content_transformer(tolower))
-corpus <- tm_map(corpus, removeNumbers)
-corpus <- tm_map(corpus, removeWords, c(stopwords("en")))
-corpus <- tm_map(corpus, content_transformer(function(x) gsub("[[:cntrl:]]", "", x))) #remove control characters
-corpus <- tm_map(corpus, content_transformer(function(x) gsub("http\\S+", "", x))) #remove website addresses
-corpus <- tm_map(corpus, content_transformer(function(x) gsub("@[A-Za-z0-9]+", "", x))) #remove mentions in text
-corpus <- tm_map(corpus, stripWhitespace)
-corpus <- tm_map(corpus, removePunctuation)
-
-#Document Term Matrix of tweets
-tweets_dtm <- DocumentTermMatrix(corpus)
-
-#Create Tidy Dataframe
-tweets_tidy <- tidy(tweets_dtm) %>%
-  mutate(index = as.numeric(document)) %>%
-  left_join(Tweets_state, by=c("index"="id")) %>%
-    mutate(state = ifelse(state=="new york:long island","new york",
-                        ifelse(state=="new york:main","new york",
-                        ifelse(state=="new york:main","new york",
-                        ifelse(state=="new york:manhattan","new york",
-                        ifelse(state=="north carolina:main","north carolina",
-                        ifelse(state=="massachusetts:main","massachusetts",
-                        ifelse(state=="michigan:north","michigan",
-                        ifelse(state=="michigan:south","michigan",
-                        ifelse(state=="virginia:main", "virginia",
-                        ifelse(state=="washington:main","washington",state)))))))))))
-tweets_tidy_wc <- tweets_tidy %>%
-  group_by(term) %>%
-  summarize(n = sum(count)) %>%
-  arrange(desc(n)) %>%
-  filter(! term %in% c("student","loan","debt","cancelstudentdebt","amp","forgiveness","like","can","just","get","will"))%>% 
-  rename(word=term, freq=n)
-
- # Create a wordcloud with wesanderson palette
+# Create a wordcloud with wesanderson palette
+## load preprocessed data
+readRDS("data/tweets_tidy_wc.RDS")
 Twitter_wd <- wordcloud2(tweets_tidy_wc,
                          color = wes_palette(name="Royal2"),
-                         fontFamily = "serif") 
+                         fontFamily = "serif")
 
 ### Figure 3: <#CancelStudentDebt Tweets in the US - Location of Selectice Institutions>
 
