@@ -35,6 +35,7 @@ tweets_tidy <- tidy(tweets_dtm) %>%
                                                                   ifelse(state=="michigan:south","michigan",
                                                                          ifelse(state=="virginia:main", "virginia",
                                                                                 ifelse(state=="washington:main","washington",state)))))))))))
+saveRDS(tweets_tidy, file = "../data/tweets_tidy.RDS")
 tweets_tidy_wc <- tweets_tidy %>%
   group_by(term) %>%
   summarize(n = sum(count)) %>%

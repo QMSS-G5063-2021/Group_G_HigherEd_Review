@@ -62,16 +62,29 @@ load("data/repay_rate_dist_df.Rdata")
 load("data/sc_data.Rdata")
 
 ###Tweets Data
-#Tweets_state <- readRDS('data/Geotweets_state_cleaned.RDS') %>%
-#  mutate(id=row_number())
+Tweets_state <- readRDS('data/Geotweets_state_cleaned.RDS') %>%
+  mutate(id=row_number())
+tweets_tidy <- readRDS("data/tweets_tidy.RDS")
+tweets_tidy_wc <- readRDS("data/tweets_tidy_wc.RDS")
 
 SearchTrend <- read_csv('data/SearchTrend.csv', col_names = TRUE, skip = 2) %>%
   rename(Total_Searches = 'student loan forgiveness: (United States)') %>%
   mutate(Month = zoo::as.yearmon(Month))
 
 Schools <- read_csv('data/2010_2019_student_debt.csv') %>%
-  select(INSTNM, CITY,LATITUDE, LONGITUDE, ADM_RATE) %>%
-  filter(!is.na(ADM_RATE))
+  select(INSTNM, UGDS,CITY,LATITUDE, LONGITUDE, STABBR, ADM_RATE, DEBT_MDN, Year_Ending) %>%
+  filter(!is.na(ADM_RATE)) %>% subset(DEBT_MDN !='PrivacySuppressed') %>% 
+  transform(DEBT_MDN = as.numeric(DEBT_MDN)) %>% 
+  dplyr::mutate(DEBT_MDN = ifelse(is.na(DEBT_MDN), 0, DEBT_MDN)) %>% 
+  mutate(DEBT_MDN_STUDENT = DEBT_MDN*UGDS)
+
+sc <- Schools %>% filter(Year_Ending == 2019)%>%
+  dplyr::mutate(uni_rank = case_when(
+    ADM_RATE < 0.2 ~ 'highly selective/elite',
+    ADM_RATE < 0.3 ~ 'more selective',
+    ADM_RATE < 0.5 ~ 'selective',
+    ADM_RATE < 0.7 ~ 'less selective',
+    TRUE ~ 'not selective')) %>% mutate(uni_rank = factor(uni_rank, levels=c('not selective', 'less selective', 'selective', 'more selective', 'highly selective/elite')))
 
 ## save styles and themes
 source("ourtheme.R")
@@ -149,7 +162,7 @@ avg.cpi <- apply.yearly(CPIAUCSL, mean)
 cf <- as.data.frame(avg.cpi/as.numeric(avg.cpi['2009'])) 
 cf$Year_Ending <- format(as.Date(row.names(cf), format="%Y-%m-%d"),"%Y")
 # Merged for Inflation 
-sc_time_df <- sc_time %>% group_by(`Year_Ending`) %>% mutate(`Average Annual Student Debt - National` = sum(DEBT_MDN_STUDENT,na.rm=TRUE)/sum(UGDS,na.rm=TRUE)) %>% ungroup() %>% 
+sc_time_df <- Schools %>% group_by(`Year_Ending`) %>% mutate(`Average Annual Student Debt - National` = sum(DEBT_MDN_STUDENT,na.rm=TRUE)/sum(UGDS,na.rm=TRUE)) %>% ungroup() %>% 
   dplyr::mutate(uni_rank = case_when(
     ADM_RATE < 0.2 ~ 'elite/highly selective',
     ADM_RATE < 0.3 ~ 'more selective',
@@ -182,7 +195,7 @@ plot_line <- sc_time_df %>%
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background= element_rect(fill="white")) +
-  scale_x_continuous(breaks = round(seq(min(sc_time$Year_Ending), max(sc_time$Year_Ending), by = 2),1)) +
+  scale_x_continuous(breaks = round(seq(min(Schools$Year_Ending), max(Schools$Year_Ending), by = 2),1)) +
   labs(x='', y='Inflation-Adjusted Median Loan Amount per Student\n(thousands)', 
        title='Student Debt Has Been Rising Over The Years',
        color='',fill='',group='',linetype='')
@@ -210,12 +223,11 @@ Trend <- ggplot(SearchTrend,aes(x=Month, y=Total_Searches,group=1)) +
 ### Figure 2: <Tweets Keywords>
 # Create a wordcloud with wesanderson palette
 ## load preprocessed data
-readRDS("data/tweets_tidy_wc.RDS")
 Twitter_wd <- wordcloud2(tweets_tidy_wc,
                          color = wes_palette(name="Royal2"),
                          fontFamily = "serif")
 
-### Figure 3: <#CancelStudentDebt Tweets in the US - Location of Selectice Institutions>
+### Figure 3: <#CancelStudentDebt Tweets in the US - Location of Selective Institutions>
 
 #Get list of top words by state
 State_top_words <- tweets_tidy %>%
@@ -571,7 +583,7 @@ server <- function(input, output) {
   
   ## leaflet ~~~~~~~~~
   ### connie map prep code data wrangle
-    sc_time_selective <- reactive({sc_time %>% subset(Year_Ending == input$year) %>%
+    sc_time_selective <- reactive({Schools %>% subset(Year_Ending == input$year) %>%
         group_by(STABBR) %>% mutate(`Average Student Loans`=sum(DEBT_MDN_STUDENT,na.rm=TRUE)/sum(UGDS,na.rm=TRUE)) %>%
         group_by(STABBR,`Average Student Loans`) %>% summarize()})
     states <- states(cb = TRUE)
@@ -585,7 +597,7 @@ server <- function(input, output) {
                      paste('$',round(states_year()$`Average Student Loans`)))
     
     sc_time_selective_title <- tags$p(tags$style('p{color:gray; font-size: 14px; family: serif}'),
-                                      tags$b('Average Debt By State (2019)'))
+                                      tags$b(paste('Average Debt By State',input$year)))
     leaflet(states_year()) %>% addProviderTiles("CartoDB.Positron") %>%
       addPolygons(fillColor = ~pal(states_year()$`Average Student Loans`),
                   color = "white",
