@@ -59,17 +59,7 @@ load("data/repay_rate_ave_df.Rdata")
 load("data/repay_rate_dist_df.Rdata")
 
 ## import data - Debt and College Scorecard 
-sc_time <- read.csv('data/2010_2019_student_debt.csv') %>% subset(DEBT_MDN !='PrivacySuppressed') %>% 
-  transform(DEBT_MDN = as.numeric(DEBT_MDN)) %>% 
-  dplyr::mutate(DEBT_MDN = ifelse(is.na(DEBT_MDN), 0, DEBT_MDN)) %>% 
-  mutate(DEBT_MDN_STUDENT = DEBT_MDN*UGDS)
-sc <- sc_time %>% filter(Year_Ending == 2019)%>%
-  dplyr::mutate(uni_rank = case_when(
-    ADM_RATE < 0.2 ~ 'highly selective/elite',
-    ADM_RATE < 0.3 ~ 'more selective',
-    ADM_RATE < 0.5 ~ 'selective',
-    ADM_RATE < 0.7 ~ 'less selective',
-    TRUE ~ 'not selective')) %>% mutate(uni_rank = factor(uni_rank, levels=c('not selective', 'less selective', 'selective', 'more selective', 'highly selective/elite')))
+load("data/sc_data.Rdata")
 
 ###Tweets Data
 #Tweets_state <- readRDS('data/Geotweets_state_cleaned.RDS') %>%
