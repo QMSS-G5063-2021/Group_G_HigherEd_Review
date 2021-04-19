@@ -1,5 +1,6 @@
-## Group Project Public Repo for Review - Group_G_HigherEd
+## Group Project Public Repo for Review 
 
+Group_G_HigherE
 Term: Spring 2021
 
 ## Team
