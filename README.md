@@ -17,8 +17,6 @@ Term: Spring 2021
 ## Project Description: 
 
 
-## Framework of Solution:
-
 
 
 ## Important Links
