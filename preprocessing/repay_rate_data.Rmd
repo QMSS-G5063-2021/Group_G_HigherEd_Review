@@ -1,0 +1,38 @@
+---
+title: "repay_rate_data"
+author: "Arielle Herman"
+date: "4/19/2021"
+output: html_document
+---
+
+```{r}
+load("../data/sc_repay.Rdata")
+
+# average point and line plot
+totals <- select(sc_repay, contains("count"))/select(sc_repay, contains("rate"))
+totals <- setNames(totals, gsub("count", "total", colnames(totals)))
+
+repay_rate_ave_df <- sc_repay %>%
+  # data wrangle
+  cbind(totals) %>% filter(repay_rate > 0,
+                           repay_rate_midincome > 0, repay_rate_lowincome > 0, repay_rate_highincome > 0,
+                           years_since_entering_repay == 1) %>%
+  group_by(cohort_year) %>% summarize(low = sum(repay_count_lowincome)/sum(repay_total_lowincome),
+                                      med = sum(repay_count_midincome)/sum(repay_total_midincome),
+                                      high = sum(repay_count_highincome)/sum(repay_total_highincome)) %>%
+  pivot_longer(cols = c("low", "med", "high"), names_to = "class", values_to = "rates") %>%
+  mutate(class = factor(class, levels = c("high", "med", "low")))
+
+# repay_rate_dist_df ggridges plot
+repay_rate_dist_df <- sc_repay %>% filter(years_since_entering_repay == 1) %>%
+  # data wrangle
+  pivot_longer(cols = c("repay_rate_lowincome", "repay_rate_midincome", "repay_rate_highincome"),
+               names_to = "class", values_to = "rates") %>%
+  filter(rates > 0) %>%
+  mutate(class = factor(class, levels =
+                          c("repay_rate_highincome", "repay_rate_midincome", "repay_rate_lowincome")))
+
+
+save(repay_rate_ave_df, file = "../data/repay_rate_ave_df.Rdata")
+save(repay_rate_dist_df, file = "../data/repay_rate_dist_df.Rdata")
+```

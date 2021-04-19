@@ -55,7 +55,8 @@ library(quantmod)
 library(shinydashboard)
 
 ## import data
-load("data/sc_repay.Rdata")
+load("data/repay_rate_ave_df.Rdata")
+load("data/repay_rate_dist_df.Rdata")
 
 ## import data - Debt and College Scorecard 
 sc_time <- read.csv('data/2010_2019_student_debt.csv') %>% subset(DEBT_MDN !='PrivacySuppressed') %>% 
@@ -91,24 +92,9 @@ source("ourtheme.R")
 # Student Loans
 ## Arielle: Repayment Rates
 ### Figure 1: Repayment Rates Median by Class
-totals <- select(sc_repay, contains("count"))/select(sc_repay, contains("rate"))
-totals <- setNames(totals, gsub("count", "total", colnames(totals)))
-
-repay_rate_ave <- sc_repay %>%
-  # data wrangle
-  cbind(totals) %>% filter(repay_rate > 0,
-                           repay_rate_midincome > 0, repay_rate_lowincome > 0, repay_rate_highincome > 0,
-                           years_since_entering_repay == 1) %>%
-  group_by(cohort_year) %>% summarize(low = sum(repay_count_lowincome)/sum(repay_total_lowincome),
-                                      med = sum(repay_count_midincome)/sum(repay_total_midincome),
-                                      high = sum(repay_count_highincome)/sum(repay_total_highincome)) %>%
-  pivot_longer(cols = c("low", "med", "high"), names_to = "class", values_to = "rates") %>%
-  mutate(class = factor(class, levels = c("high", "med", "low"))) %>%
-  
-  # plot
-  ggplot(aes(x = cohort_year, y = rates, group = class, color = class)) +
+repay_rate_ave <- ggplot(repay_rate_ave_df,
+                         aes(x = cohort_year, y = rates, group = class, color = class)) +
   geom_line() + geom_point() +
-  
   # labels
   ggtitle("Cohort Performance in First Year of Repayment") +
   xlab("\nFiscal Cohort Year") + ylab("Average Proportion of Fiscal Cohort\nto Decline Loan Balance\n") +
@@ -119,16 +105,7 @@ repay_rate_ave <- sc_repay %>%
   ourtheme
 
 ### figure 2: repayment rate distributions
-repay_rate_dist <- sc_repay %>% filter(years_since_entering_repay == 1) %>%
-  # data wrangle
-  pivot_longer(cols = c("repay_rate_lowincome", "repay_rate_midincome", "repay_rate_highincome"),
-               names_to = "class", values_to = "rates") %>%
-  filter(rates > 0) %>%
-  mutate(class = factor(class, levels =
-                          c("repay_rate_highincome", "repay_rate_midincome", "repay_rate_lowincome"))) %>%
-  
-  # plot
-  ggplot(aes(x = rates, y = fct_rev(factor(cohort_year)), fill = class)) +
+repay_rate_dist <- ggplot(repay_rate_dist_df, aes(x = rates, y = fct_rev(factor(cohort_year)), fill = class)) +
   ggridges::geom_density_ridges(scale = 2, alpha = 0.80) +
   
   # labels
