@@ -82,6 +82,8 @@ library(leaflet)
 library(quantmod)
 
 #profvis({
+library(shinydashboard)
+
 ## import data
 load("data/sc_repay.Rdata")
 
