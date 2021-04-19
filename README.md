@@ -26,3 +26,4 @@ Term: Spring 2021
 ### 1. [Presentation Slides](https://www.canva.com/design/DAEbgBTMGTE/share/preview?token=whgxMt8Kq9nJ9iJgibDudQ&role=EDITOR&utm_content=DAEbgBTMGTE&utm_campaign=designshare&utm_medium=link&utm_source=sharebutton)
 ### 2. [Presentation Video](https://drive.google.com/file/d/1INItL6UpNl8VEpGEI1YLbWv0hvBqGlLU/view?usp=sharing)
 ### 3. [Website](https://ukipv4-connie-xu.shinyapps.io/Group_G_HigherEd_Review/)
+ - Please note that the current iteration of our Shiny site is very slow; further, the tab with the wordcloud may require the user to resize the window prior to the second graph rendering. Apologies for the inconvenience as the interactive wordcloud appears to block other plots from rendering on Shiny; we are working to resolve. 
