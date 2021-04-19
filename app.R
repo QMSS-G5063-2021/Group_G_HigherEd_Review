@@ -6,6 +6,8 @@
 library(tidyverse)
 library(ggplot2)
 library(ggridges)
+library(shinydashboard)
+
 library(magrittr)
 library(stats)
 library(manifestoR)
@@ -79,7 +81,7 @@ library(leaflet)
 #install.packages('quantmod')
 library(quantmod)
 
-
+#profvis({
 ## import data
 load("data/sc_repay.Rdata")
 
@@ -471,17 +473,20 @@ TweetsMap <- leaflet() %>%
   addResetMapButton()
 
 ### UI ###
-ui <- dashboardPage(
-  dashboardHeader(title = "Group G: Student Debt"),
-  dashboardSidebar(
-    sidebarMenu(
+ui <- shinydashboard::dashboardPage(
+  
+  shinydashboard::dashboardHeader(title = "Student Debt"),
+  
+  shinydashboard::dashboardSidebar(
+    shinydashboard::sidebarMenu(
       menuItem("About", tabName = "about"),
       menuItem("Student Loans", tabName = "loans"),
       menuItem("What do people think?", tabName = "tweets"),
       menuItem("Where do people think it?", tabName = "tweetmap")
     )
   ),
-  dashboardBody(
+  
+  shinydashboard::dashboardBody(
     tabItems(
       tabItem(tabName = "about", class = "active",
               fluidPage(
@@ -523,8 +528,7 @@ ui <- dashboardPage(
                                balances over time.  While the average fiscal cohort may be having more difficulty in
                                repaying their loans, we can look to the distribution of repayment rates across
                                universities in order to determine whether or not income brackets have been impacted
-                               differently over time.")), style='padding:5px;'),
-                         br()),
+                               differently over time.")), style='padding:5px;')),
                 fluidRow(align = "left",
                          column(4, wellPanel(p("This density plot demonstrates the distribution of repayment proportions across
                    universities for the first year of repayment for recent fiscal cohorts.  Each unviersity's fiscal 
@@ -582,8 +586,8 @@ ui <- dashboardPage(
                  median debt following 2014).  
                    
                 To look at how median student debt has changed either by only national average or to look at specific
-                'selectivity' buckets, one can simply click to remove the remaining lines in the plot."))),
-                         column(12, wellPanel(leafletOutput("studentdebtmap")))),
+                'selectivity' buckets, one can simply click to remove the remaining lines in the plot.")))),
+                fluidRow(column(12, wellPanel(leafletOutput("studentdebtmap")))),
                 fluidRow(column(12, wellPanel(p("Not all schools have similar amounts of median student debt burden (i.e., upon the
         beginning of the repayment period). This map summarizes the median debt burden by the state that the school is
         located in. As shown in this plot, some states (including schools in Pennsylvania, Minnesota, Illinois, etc.) tend to
@@ -649,55 +653,30 @@ ui <- dashboardPage(
 ) # ui?
 
 server <- function(input, output) {
-  #library(tidyverse)
-  # arielle ~~~~~~~~~~~~~~~~~~~~~
-  output$repay_rate_ave <- renderPlot({
-    repay_rate_ave
-    
-  })
-  output$repay_rate_dist <- renderPlot({
-    repay_rate_dist
-  })
-  # grace ~~~~~~~~~~~~~~~~~~~~~~~
+  # arielle's plots ~~~~~~~~~~~~~~~~~~~~~
+  output$repay_rate_ave <- renderPlot({repay_rate_ave})
+  output$repay_rate_dist <- renderPlot({repay_rate_dist})
   
-  output$trend <- renderPlot({
-    Trend
-  })
+  # grace's plots ~~~~~~~~~~~~~~~~~~~~~~~
+  output$trend <- renderPlot({Trend})
+  output$wordcloud <- wordcloud2::renderWordcloud2({Twitter_wd})
+  output$tweetsmap <- leaflet::renderLeaflet({TweetsMap})
   
-  output$wordcloud <- wordcloud2::renderWordcloud2({
-    Twitter_wd
-  })
+  # Connie's plots ~~~~~~~~~~~~~~~~~~~~~~~
+  output$table <- renderDT({table_1})
+  #output$treemap <- renderHighchart2(treemap)
+  output$admissions_scatter <- renderPlot({admissions_scatter})
+  output$plotly <- renderPlotly({plot_line_plotly})
   
-  output$tweetsmap <- leaflet::renderLeaflet({
-    TweetsMap
-  })
+  ## leaflet ~~~~~~~~~
+  ### connie map prep code data wrangle
+    sc_time_selective <- reactive({sc_time %>% subset(Year_Ending == input$year) %>%
+        group_by(STABBR) %>% mutate(`Average Student Loans`=sum(DEBT_MDN_STUDENT,na.rm=TRUE)/sum(UGDS,na.rm=TRUE)) %>%
+        group_by(STABBR,`Average Student Loans`) %>% summarize()})
+    states <- states(cb = TRUE)
+    states_year <- reactive({states %>% inner_join(sc_time_selective(), by=c(STUSPS='STABBR'))}) 
   
-  # Connie ~~~~~~~~~~~~~~~~~~~~~~~
-  
-  output$table <- renderDT(
-    table_1
-  )
-  
-  #output$treemap <- renderHighchart2(
-  #  treemap
-  #)
-  output$admissions_scatter <- renderPlot({
-    admissions_scatter
-  })
-  
-  output$plotly <- renderPlotly({
-    plot_line_plotly
-  })
-  
-  
-  # connie map prep code data wrangle
-  sc_time_selective <- reactive({sc_time %>% subset(Year_Ending == input$year) %>%
-      group_by(STABBR) %>% mutate(`Average Student Loans`=sum(DEBT_MDN_STUDENT,na.rm=TRUE)/sum(UGDS,na.rm=TRUE)) %>%
-      group_by(STABBR,`Average Student Loans`) %>% summarize()})
-  states <- states(cb = TRUE)
-  states_year <- reactive({states %>% inner_join(sc_time_selective(), by=c(STUSPS='STABBR'))}) 
-  
-  # render output
+  ### render leaflet output
   output$studentdebtmap <- renderLeaflet({
     pal = colorFactor('Greens', domain = states_year()$`Average Student Loans`)
     pop_pop <- paste("State:",states_year()$NAME,"<br/>",
@@ -716,18 +695,20 @@ server <- function(input, output) {
                     color = "#666",
                     fillOpacity = 0.7,
                     bringToFront = TRUE,
-                  ),popup=pop_pop) %>% leaflet::addLegend(position = "bottomleft", colors =c("#EDF8E9","#BAE4B3","#74C476","#31A354","#006D2C"), 
-                                                          labels = c(paste('$',round(min(states_year()$`Average Student Loans`)))," "," "," ", 
-                                                                     paste('$',round(max(states_year()$`Average Student Loans`)))),
-                                                          title = "Average Student Loans (Per Student)") %>%
+                  ),popup=pop_pop) %>%
+      leaflet::addLegend(position = "bottomleft",
+                         colors =c("#EDF8E9","#BAE4B3","#74C476","#31A354","#006D2C"),
+                         labels = c(paste('$',round(min(states_year()$`Average Student Loans`)))," "," "," ",
+                                    paste('$',round(max(states_year()$`Average Student Loans`)))),
+                         title = "Average Student Loans (Per Student)") %>%
       leaflet::setView(-98.5795, 39.8282, zoom=3) %>% addControl(sc_time_selective_title, position='topright')
   })
-  # observe leaflet output  
-  observe({
-    leafletProxy("studentdebtmap", data = states_year())
-  })
+  
+  ### observe leaflet output  
+  observe({leafletProxy("studentdebtmap", data = states_year())
+    })
   
 }
-
 shinyApp(server = server, ui = ui)
-
+#}) # profvis
+ 
