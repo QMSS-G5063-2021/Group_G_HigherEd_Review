@@ -647,7 +647,6 @@ ui <- dashboardPage(
     ) # tabItems
   ) # dashboard Body
 ) # ui?
-)
 
 server <- function(input, output) {
   #library(tidyverse)
