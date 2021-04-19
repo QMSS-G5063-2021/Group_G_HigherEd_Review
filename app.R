@@ -78,7 +78,7 @@ library(leaflet.providers)
 library(leaflet)
 #install.packages('quantmod')
 library(quantmod)
-
+library(shinydashboard)
 
 ## import data
 load("data/sc_repay.Rdata")
