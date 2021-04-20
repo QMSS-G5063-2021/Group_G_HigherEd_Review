@@ -405,22 +405,28 @@ ui <- shinydashboard::dashboardPage(
               fluidPage(
                 tags$div(
                   tags$h1("Project Motivation"),
-                  "At the end of this March, President Biden announced the cacellation of 1.3 billion dollar
-                  of student loans, accompanying with a clearer picture of his overall plan on student loan.
-                  While he cancelled in total of 2.3 billion dollar of student loans for more than 110,000
-                  student loan borrowers and received much apprais from the group, the reaction among all the
-                  Americans on this controversial issue has been quiet different. Therefore, in this project,
-                  our team want to investigate further on why student loan becomes a serious problem here in US,
-                  as well as how people in US has reacted to the issue based on their talk on social medis platform.
+                  column(12,p("In March 2021, President Biden announced a federal student laon cancellation program of over $2 billion dollars. 
+                  For much of the American public, this announcement reignited interest and discourse around the state of student debt 
+                  in America. Even as some cry that this loan forgiveness program was an excessive and unnecessary government expense, 
+                  more and more people are pushing for universal student laon forgiveness. Based on the relevance of this topic, our team wished to  
+                  better understand this topic from both a historical and a socioeconomic perspective, with the hope that this context could help
+                  to shed light on the contemporary discourse around  student loan forgiveness policy.")),
+                    
+                  column(12,p("This project explores how student debt and repayment interacts with socioeconomic conditions and university prestige. As this was a fairly broad topic,
+                  we did a decent amount of data exploration before zooming in on our research focus. The project involves three parts. First, we focused 
+                  on specific aspects of the student loan issue including university selectivity, family income, repayment rate over time, and looked at  the regional 
+                  differences in average debt at the university level to understand why student debt has become a more and more serious problem in the US. 
+                  We noted that while the overall amount of individuals repaying their loans was increasing, this increase was outpaced by the increase in 
+                  average student debt amount undertaken by college students. Additionally, we noted that repayment rate and median debt amount were not by any means 
+                  evenly distributed across the nation - individuals in less selective schools appear to be incurring slightly higher amounts of student debt on average, 
+                  and individuals from lower income brackets were disparately unable to make progress on their loans within the first year of repayment.")),
+                    
+                  column(12,p("After looking at the historical data, we also sought to understand the current discussion on student loan forgiveness in light of the Biden 
+                  administration's recent announcement of a $1 billion cancellation in student loans. Specifically, we looked at the tweets keywords and 
+                  examined the overlap between states most concerned about student debt and where the selective schools are located in the US, and were somewhat unsurprised 
+                  to find the existence of such an overlap in these areas (despite the fact that more students from more selective schools incur
+                  lower levels of student debt on average.")),
                   
-                  As discussed in other sections of our repository, this project sought to explore a factors
-                  related to socioeconomic conditions, student debt, inequities, and policy. This was a really
-                  broad topic so we did a decent amount of exploration of the data prior to deciding on a more
-                  specific topic. We tried to focus on spefic aspects of the student loan issue including university
-                  selectivity, family income, repayment rate over time, and the regional differnce of debt amount to
-                  understand why student debt becomes a more and more serious problem that people in US now are
-                  highly concern with. After understanding the issue and recognizing the problem, we then use
-                  the information from Google trend and Twitter platform to see how people reatced and talked about it.",
                   tags$h1("Sources"),
                   "For our project, we looked at data from the following sources:
                   (1) Scorecard, (2) Urban Institute Education Data, (3) Twitter API, and (4) Google Trends",
@@ -466,7 +472,7 @@ ui <- shinydashboard::dashboardPage(
                  furthermore are more interesting to our focal questions.")))),
                 #column(4, wellPanel(highcart2Output("treemap")))), # finish output function
                 fluidRow(align = "left",
-                         column(4, wellPanel(p("  This plot sets out to show the relationship between median loan amount in 2019 and
+                         column(4, wellPanel(p("  This plot shows the relationship between median loan amount in 2019 and
                  the admissions rate. The trend shown here is that as the admissions rate goes up (i.e., as schools become
                  less selective), so does median loan amount (at least until we go from less selective to not selective).
                  Based on the scatterplot, it can also be seen that the variance goes up in terms of median student loan
