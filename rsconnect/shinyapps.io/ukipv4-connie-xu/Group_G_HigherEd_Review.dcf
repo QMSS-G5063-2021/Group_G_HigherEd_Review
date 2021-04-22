@@ -5,9 +5,10 @@ account: ukipv4-connie-xu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3991318
-bundleId: 4502947
+bundleId: 4504798
 url: https://ukipv4-connie-xu.shinyapps.io/Group_G_HigherEd_Review/
-when: 1619061773.72802
+when: 1619096058.08659
+lastSyncTime: 1619096058.0866
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: Process-Book.html|README.md|preprocessing/repay_rate_data.Rmd|preprocessing/scorecard_data.Rmd|preprocessing/wordcloud.Rmd
+ignoredFiles: preprocessing/repay_rate_data.Rmd|preprocessing/scorecard_data.Rmd|preprocessing/wordcloud.Rmd|Process-Book.html|README.md
