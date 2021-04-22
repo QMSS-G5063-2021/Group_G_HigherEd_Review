@@ -141,7 +141,7 @@ treemap <- sc_dt %>% dplyr::mutate(Description=paste(`University Selectivity`, '
           title = 'Universities and Selectivity')
 
 ### Figure 3: <admissions_scatter>
-ShortPuBuGn <- c("#D0D1E6","#A6BDDB","#67A9CF","#3690C0","#02818A")
+ShortPuBuGn <- c("#87BA8F","#008D70","#008AC6","#6271B3","#2F4858")
 admissions_scatter <- sc %>% subset(DEBT_MDN !='PrivacySuppressed') %>% transform(DEBT_MDN = as.numeric(DEBT_MDN)) %>%
   ggplot(., aes(x=ADM_RATE, y=DEBT_MDN,color=uni_rank)) +
   geom_point(pch=21) +
@@ -189,8 +189,8 @@ sc_time_df <- sc_time_df %>% rbind(sc_df) %>% mutate(uni_rank = factor(uni_rank,
 plot_line <- sc_time_df %>% 
   ggplot(.,aes(x=Year_Ending,y=`Adjusted Average Annual Student Debt`, color=uni_rank)) + 
   geom_line(aes(linetype=`Group Level`)) + 
-  scale_color_manual(values=c('grey',"#D0D1E6","#A6BDDB","#67A9CF","#3690C0","#02818A"))+
-  scale_linetype_manual(values=c("solid", "dotted"))+
+  scale_color_manual(values=c('grey',"#87BA8F","#008D70","#008AC6","#6271B3","#2F4858"))+
+  scale_linetype_manual(values=c("dotted", "solid"))+
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -500,14 +500,14 @@ ui <- shinydashboard::dashboardPage(
                  principal between 2015 and 2017, but this amount declined a bit again in 2018) and different selectivity
                  groups decreased in median student debt over time (less selective; selective schools seemed to decrease in
                  median debt following 2014).  
-                                                                                                                                
+                   
                 To look at how median student debt has changed either by only national average or to look at specific
                 'selectivity' buckets, one can simply click to remove the remaining lines in the plot.")))),
-                fluidRow(column(3, tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
-                              wellPanel(sliderInput(inputId = "year",
-                                                       label = "Year",
-                                                       value = 2019, min = 2010, max = 2019, sep = ''))),
-                         column(9, wellPanel(leafletOutput("studentdebtmap")))),
+                fluidRow(tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
+                         column(4, wellPanel(sliderInput(inputId = "year",
+                                                label = "",
+                                                value = 2019, min = 2010, max = 2019, sep = '')))),
+                fluidRow(column(12, wellPanel(leafletOutput("studentdebtmap")))),
                 fluidRow(column(12, wellPanel(p("Not all schools have similar amounts of median student debt burden (i.e., upon the
         beginning of the repayment period). This map summarizes the median debt burden by the state that the school is
         located in. As shown in this plot, some states (including schools in Pennsylvania, Minnesota, Illinois, etc.) tend to
