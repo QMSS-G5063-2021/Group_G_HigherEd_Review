@@ -479,7 +479,7 @@ ui <- shinydashboard::dashboardPage(
                          column(7, wellPanel(plotOutput("treemap"))),
                          column(5, wellPanel(p("We will now look at the relationships between student loans and the 'selectiveness'
                  of the universities in our dataset. Selectiveness (admissions rate) is often a proxy for the prestige
-                 \"ranking\" of a school.",
+                 \"ranking\" of a school."),
                  p("This treemap shows how we categorized our admissions rate for 'university
                  selectivity' grouping (from the College Scorecard file) into 'selectiveness' categories. 
                  As shown, the vast majority of schools in our dataset were categorized as 'not
@@ -490,7 +490,7 @@ ui <- shinydashboard::dashboardPage(
                 fluidRow(align = "left",
                          column(4, wellPanel(p("As schools become less selective, the median loan amount appears to be 
                  increasing (on average). We also see that the variance goes up in terms of the median student loan
-                 amount (although this is partially due to the much larger number of schools in the less selective groupings)."), 
+                 amount (although this is partially due to the much larger number of schools in the less selective groupings)."),
                  p("This is somewhat interesting because more exclusive/selective schools are on average viewed as more
                  'competitive' and 'prestigious' (e.g., Harvard, Stanford, etc.). Such
                  schools include more financial resources (as more prestigious schools produce alma maters with higher
@@ -511,7 +511,6 @@ ui <- shinydashboard::dashboardPage(
                  principal between 2015 and 2017, but this amount declined a bit again in 2018) and different selectivity
                  groups decreased in median student debt over time (less selective; selective schools seemed to decrease in
                  median debt following 2014)."),  
-                   
                 p("To look at how median student debt has changed either by only national average or to look at specific
                 'selectivity' buckets, one can simply click to remove the remaining lines in the plot.")))),
                 fluidRow(tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
