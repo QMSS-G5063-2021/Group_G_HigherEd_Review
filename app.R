@@ -151,7 +151,9 @@ admissions_scatter <- sc %>% subset(DEBT_MDN !='PrivacySuppressed') %>% transfor
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background= element_rect(fill="white")) +
+  ylim(-100,30000) + xlim(-0.1,1) +
   scale_y_discrete(limits=c(0,10000,20000,30000), labels=c('0','10','20','30')) +
+  scale_x_continuous(labels = percent)+
   labs(x='Admissions Rate', y='Median Loan Amount per Student\n(thousands)',
        title='Student Debt and Admissions Rate',
        color='Selectivity')
