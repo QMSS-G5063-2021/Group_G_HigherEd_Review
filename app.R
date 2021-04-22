@@ -491,10 +491,7 @@ ui <- shinydashboard::dashboardPage(
                 tags$div(tags$h2("Student Debt Over Time", align = "center")),
                 fluidRow(align = "left",
                          column(12, wellPanel(plotlyOutput("plotly")))),
-                fluidRow(column(4, wellPanel(sliderInput(inputId = "year",
-                                                         label = "Year",
-                                                         value = 2019, min = 2010, max = 2019, sep = ''))),
-                         column(8, wellPanel(p("  Between 2010 and 2018, the median loan amount per student increased by 2000-4000+
+                fluidRow(column(12, wellPanel(p("  Between 2010 and 2018, the median loan amount per student increased by 2000-4000+
                  USD (inflation-adjusted) - nationally, the median student loan amount increased by 19%. When one
                  disaggregates universities by selectivity, we see the same *overall* trend over time (i.e., there is a fair
                  amount of increase during the period in terms of average student loans that students leave with upon
@@ -503,10 +500,14 @@ ui <- shinydashboard::dashboardPage(
                  principal between 2015 and 2017, but this amount declined a bit again in 2018) and different selectivity
                  groups decreased in median student debt over time (less selective; selective schools seemed to decrease in
                  median debt following 2014).  
-                   
+                                                                                                                                
                 To look at how median student debt has changed either by only national average or to look at specific
                 'selectivity' buckets, one can simply click to remove the remaining lines in the plot.")))),
-                fluidRow(column(12, wellPanel(leafletOutput("studentdebtmap")))),
+                fluidRow(column(3, tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
+                              wellPanel(sliderInput(inputId = "year",
+                                                       label = "Year",
+                                                       value = 2019, min = 2010, max = 2019, sep = ''))),
+                         column(9, wellPanel(leafletOutput("studentdebtmap")))),
                 fluidRow(column(12, wellPanel(p("Not all schools have similar amounts of median student debt burden (i.e., upon the
         beginning of the repayment period). This map summarizes the median debt burden by the state that the school is
         located in. As shown in this plot, some states (including schools in Pennsylvania, Minnesota, Illinois, etc.) tend to
