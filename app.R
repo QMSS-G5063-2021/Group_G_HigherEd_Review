@@ -103,7 +103,7 @@ repay_rate_ave <- ggplot(repay_rate_ave_df,
   ggtitle("Cohort Performance in First Year of Repayment") +
   xlab("\nFiscal Cohort Year") + ylab("Average Proportion of Fiscal Cohort\nto Decline Loan Balance\n") +
   labs(caption = "\n*Fiscal Cohort: group of students who begin repaying their loans in the same year") +
-  scale_color_brewer(name = "Family Income:", labels = c("High", "Medium", "Low"), palette = "Greens", direction = -1) +
+  scale_color_manual(name = "Family Income:", labels = c("High", "Medium", "Low"), values = GreenPal) +
   scale_y_continuous(labels = scales::dollar_format(suffix = "%", prefix = "")) +
   scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
   ourtheme
