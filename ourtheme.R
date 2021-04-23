@@ -6,3 +6,5 @@ ourtheme <- ggplot2::theme(text = element_text(family = "serif"),
                            plot.title = element_text(hjust = 0.5),
                            plot.subtitle = element_text(hjust = 0.5),
                            plot.caption = element_text(hjust = 0))
+
+GreenPal <- RColorBrewer::brewer.pal(7, "Greens")[c(7, 5, 3)]
