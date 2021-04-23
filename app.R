@@ -50,6 +50,7 @@ library(highcharter)
 library(treemap)
 library(leaflet.providers)
 library(quantmod)
+library(treemapify)
 
 #profvis({
 library(shinydashboard)
@@ -125,23 +126,36 @@ repay_rate_dist <- ggplot(repay_rate_dist_df, aes(x = rates, y = fct_rev(factor(
 ### Figure 1: <table_1>
 sc_dt <- sc %>% subset(DEBT_MDN !='PrivacySuppressed') %>% transform(DEBT_MDN = as.numeric(DEBT_MDN)) %>% group_by(uni_rank) %>% mutate(`Number of Universities` = n()) %>% ungroup() %>% mutate(DEBT_MDN_STUDENTS = DEBT_MDN*UGDS) %>% group_by(uni_rank) %>% mutate(`Median Student Loans` = paste('$',round(sum(DEBT_MDN_STUDENTS, na.rm=TRUE)/sum(UGDS, na.rm=TRUE),2))) %>%
   mutate(`Min Acceptance Rate` = percent(min(ADM_RATE))) %>% mutate(`Max Acceptance Rate` = percent(max(ADM_RATE))) %>% ungroup() %>%
-  group_by(uni_rank,`Median Student Loans`,`Number of Universities`,`Min Acceptance Rate`,`Max Acceptance Rate`) %>%
-  summarize() %>% dplyr::rename(`University Selectivity` = uni_rank)
+  dplyr::mutate(`University Selectivity` = str_to_title(uni_rank)) %>% 
+  group_by(`University Selectivity`,`Median Student Loans`,`Number of Universities`,`Min Acceptance Rate`,`Max Acceptance Rate`) %>%
+  summarize() %>% 
+  dplyr::mutate(Description=paste(`University Selectivity`,"\n",
+                                  'Acceptance Range:',"\n",
+                                  `Min Acceptance Rate`,'-',`Max Acceptance Rate`,"\n",
+                                  `Number of Universities`,'Universities'), sep ="\n") 
 
-table_1 <- datatable(sc_dt,style = "default",filter = 'top',  caption = 'Universities and Selectivity')
+#table_1 <- datatable(sc_dt,style = "default",filter = 'top',  caption = 'Universities and Selectivity')
 
 ### Figure 2: <treemap>
-treemap <- sc_dt %>% dplyr::mutate(Description=paste(`University Selectivity`, '\n',`Number of Universities`,'Universities'), sep ="\n") %>%
-  treemap(index="Description",
-          vSize="Number of Universities",
-          type="index",
-          fontsize.labels=c(12, 8),
-          palette =  viridis(5),
-          border.col="white",
-          title = 'Universities and Selectivity')
+ShortPuBuGn <- c("#87BA8F","#008D70","#008AC6","#6271B3","#2F4858")
+
+treemap <- ggplot(sc_dt, aes(area=`Number of Universities`, fill=`University Selectivity`, label=Description)) +
+  geom_treemap() +
+  geom_treemap_text(colour = "white", place = "centre", grow = F) + 
+  scale_fill_manual(values=c("#2F4858","#008D70","#6271B3","#87BA8F","#008AC6")) +
+  #elite,less selective,more selective,not selective,somewhat selective
+  theme(text=element_text(size=16,  family="serif"),legend.position = "none")
+
+
+  # treemap(index="Description",
+  #         vSize="Number of Universities",
+  #         type="index",
+  #         fontsize.labels=c(12, 8),
+  #         palette =  viridis(5),
+  #         border.col="white",
+  #         title = 'Universities and Selectivity')
 
 ### Figure 3: <admissions_scatter>
-ShortPuBuGn <- c("#D0D1E6","#A6BDDB","#67A9CF","#3690C0","#02818A")
 admissions_scatter <- sc %>% subset(DEBT_MDN !='PrivacySuppressed') %>% transform(DEBT_MDN = as.numeric(DEBT_MDN)) %>%
   ggplot(., aes(x=ADM_RATE, y=DEBT_MDN,color=uni_rank)) +
   geom_point(pch=21) +
@@ -151,9 +165,11 @@ admissions_scatter <- sc %>% subset(DEBT_MDN !='PrivacySuppressed') %>% transfor
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background= element_rect(fill="white")) +
+  ylim(-100,30000) + xlim(-0.1,1) +
   scale_y_discrete(limits=c(0,10000,20000,30000), labels=c('0','10','20','30')) +
+  scale_x_continuous(labels = percent)+
   labs(x='Admissions Rate', y='Median Loan Amount per Student\n(thousands)',
-       title='Student Debt and Admissions Rate',
+       title='Student Debt and Admissions Rate (2019)',
        color='Selectivity')
 ### Figure 4: <plot_line_plotly>
 # CPI Inflation Rates - Got Average Yearly Inflation Rate for Scaling for Student Debt 
@@ -189,8 +205,8 @@ sc_time_df <- sc_time_df %>% rbind(sc_df) %>% mutate(uni_rank = factor(uni_rank,
 plot_line <- sc_time_df %>% 
   ggplot(.,aes(x=Year_Ending,y=`Adjusted Average Annual Student Debt`, color=uni_rank)) + 
   geom_line(aes(linetype=`Group Level`)) + 
-  scale_color_manual(values=c('grey',"#D0D1E6","#A6BDDB","#67A9CF","#3690C0","#02818A"))+
-  scale_linetype_manual(values=c("solid", "dotted"))+
+  scale_color_manual(values=c('grey',"#87BA8F","#008D70","#008AC6","#6271B3","#2F4858"))+
+  scale_linetype_manual(values=c("dotted", "solid"))+
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -460,41 +476,33 @@ ui <- shinydashboard::dashboardPage(
                   tags$h1("University Selectivity and Student Debt", align = "center"),
                   tags$h2("University Selectivity", align = "center")),
                 fluidRow(align = "left",
-                         column(7, wellPanel(DTOutput("table"))),
-                         column(5, wellPanel(p("We will now examine the relationships between student loans and the 'selectiveness'
+                         column(7, wellPanel(plotOutput("treemap"))),
+                         column(5, wellPanel(p("We will now look at the relationships between student loans and the 'selectiveness'
                  of the universities in our dataset. Selectiveness (admissions rate) is often a proxy for the prestige
-                 \"ranking\" of a school. This table summarizes how we categorized our admissions rate for 'university
-                 selectivity' grouping (from the College Scorecard file). It describes the median student loans and the
-                 number of universities in each category as of 2019, as well as the Minimum Acceptance Rate, and the Maximum
-                 Acceptance Rate thresholds. As shown (left), the vast majority of schools in our dataset were 'not
-                 selective' or 'less selective'; however, many of our analyses focus on the smaller categories (particularly
+                 \"ranking\" of a school."),
+                 p("This treemap shows how we categorized our admissions rate for 'university
+                 selectivity' grouping (from the College Scorecard file) into 'selectiveness' categories. 
+                 As shown, the vast majority of schools in our dataset were categorized as 'not
+                 selective' or 'less selective'. Most of our analyses highlight the smaller categories (particularly
                  selective to highly selective/elite), because these categories have more within-group homogeneity and
-                 furthermore are more interesting to our focal questions.")))),
+                are more interesting to our focal questions.")))),
                 #column(4, wellPanel(highcart2Output("treemap")))), # finish output function
                 fluidRow(align = "left",
-                         column(4, wellPanel(p("  This plot shows the relationship between median loan amount in 2019 and
-                 the admissions rate. The trend shown here is that as the admissions rate goes up (i.e., as schools become
-                 less selective), so does median loan amount (at least until we go from less selective to not selective).
-                 Based on the scatterplot, it can also be seen that the variance goes up in terms of median student loan
-                 amount (although it can also be seen that this is partially due to the much larger number of schools in the
-                 less selective buckets).  
-                   
-                 This is somewhat interesting because more exclusive/selective schools are on average viewed as more
-                 'competitive' and 'prestigious' (e.g., Harvard, Stanford, etc.); a great deal of existent literature has
-                 noted that such 'prestigious' schools often end up admitting more people from economically privileged
-                 backgrounds (outside of those admitted specifically for diversity), as 'merit-based' admissions often
-                 correlate with access to economic and financial resources, which allow for access to resources helpful for
-                 competence signalling, such as standardized test prep courses, sports and activities, etc; furthermore, such
+                         column(4, wellPanel(p("As schools become less selective, the median loan amount appears to be 
+                 increasing (on average). We also see that the variance goes up in terms of the median student loan
+                 amount (although this is partially due to the much larger number of schools in the less selective groupings)."),
+                 p("This is somewhat interesting because more exclusive/selective schools are on average viewed as more
+                 'competitive' and 'prestigious' (e.g., Harvard, Stanford, etc.). Such
                  schools include more financial resources (as more prestigious schools produce alma maters with higher
-                 socioeconomic outcomes) and thus potentially can help more with financial aid and scholarships."))),
+                 socioeconomic outcomes) and thus potentially can help more with financial aid and scholarships; however, 
+                   these schools also disparately admit students from higher socioeconomic backgrounds (because higher-SES 
+                   students have access to better secondary school education, and further have better access to
+                   experiences conducive to acceptance in more competititve universities)."))),
                          column(8, wellPanel(plotOutput("admissions_scatter")))),
                 tags$div(tags$h2("Student Debt Over Time", align = "center")),
                 fluidRow(align = "left",
                          column(12, wellPanel(plotlyOutput("plotly")))),
-                fluidRow(column(4, wellPanel(sliderInput(inputId = "year",
-                                                         label = "Year",
-                                                         value = 2019, min = 2010, max = 2019, sep = ''))),
-                         column(8, wellPanel(p("  Between 2010 and 2018, the median loan amount per student increased by 2000-4000+
+                fluidRow(column(12, wellPanel(p("  Between 2010 and 2018, the median loan amount per student increased by 2000-4000+
                  USD (inflation-adjusted) - nationally, the median student loan amount increased by 19%. When one
                  disaggregates universities by selectivity, we see the same *overall* trend over time (i.e., there is a fair
                  amount of increase during the period in terms of average student loans that students leave with upon
@@ -502,10 +510,13 @@ ui <- shinydashboard::dashboardPage(
                  Selective' or schools with 20-30% acceptance rates appeared to increase greatly in terms of student debt
                  principal between 2015 and 2017, but this amount declined a bit again in 2018) and different selectivity
                  groups decreased in median student debt over time (less selective; selective schools seemed to decrease in
-                 median debt following 2014).  
-                   
-                To look at how median student debt has changed either by only national average or to look at specific
+                 median debt following 2014)."),  
+                p("To look at how median student debt has changed either by only national average or to look at specific
                 'selectivity' buckets, one can simply click to remove the remaining lines in the plot.")))),
+                fluidRow(tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
+                         column(4, wellPanel(sliderInput(inputId = "year",
+                                                label = "",
+                                                value = 2019, min = 2010, max = 2019, sep = '')))),
                 fluidRow(column(12, wellPanel(leafletOutput("studentdebtmap")))),
                 fluidRow(column(12, wellPanel(p("Not all schools have similar amounts of median student debt burden (i.e., upon the
         beginning of the repayment period). This map summarizes the median debt burden by the state that the school is
@@ -513,11 +524,11 @@ ui <- shinydashboard::dashboardPage(
         have the highest average median debt burden between the schools within. These states do not necessarily house the
         most prestigious schools. One of the things we can see when disaggregating this way is that locationally there is a
         lot of diversity of the student loan burden (on average) given to students by schools when disaggregated at the state
-        level (ranging from 4K to 18K USD in 2019)
-          
-        Note that we have also included the shiny interactivity component in which one can select the year on the slider to
+        level (ranging from 4K to over 20K USD in 2019)."),
+        p("Note that we have also included the shiny interactivity component in which one can select the year on the slider to
         see the state-level debt median disaggregation across the years; this is not the primary function but instead is a
-        functionality we added to allow individuals to 'explore the data' a bit.")))))),
+        functionality we added to allow individuals to 'explore the data' a bit, and to show once more the increases in 
+        student debt over time (now on a state level).")))))),
       tabItem(tabName = "tweets", class = "active",
               fluidPage(
                 fluidRow(align = "left",
@@ -541,7 +552,7 @@ ui <- shinydashboard::dashboardPage(
                                  studentloanforgiveness, etc. This keywords pattern confirms our initial hypothesis that
                                  the recent discussion on canceling student debt on twitter is around the biden
                                  administration as a result of the $1B student loan cancellation announced in
-                                 Mid-march.")))))),
+                                 Mid-March.")))))),
       tabItem(tabName = "tweetmap", class = "active",
               fluidPage(
                 fluidRow(column(12, wellPanel(leafletOutput("tweetsmap")))),
@@ -582,8 +593,8 @@ server <- function(input, output) {
   output$tweetsmap <- leaflet::renderLeaflet({TweetsMap})
   
   # Connie's plots ~~~~~~~~~~~~~~~~~~~~~~~
-  output$table <- renderDT({table_1})
-  #output$treemap <- renderHighchart2(treemap)
+  #output$table <- renderDT({table_1})
+  output$treemap <- renderPlot(treemap)
   output$admissions_scatter <- renderPlot({admissions_scatter})
   output$plotly <- renderPlotly({plot_line_plotly})
   
