@@ -1,0 +1,14 @@
+name: Group_G_HigherEd_Review
+title: Group_G_HigherEd_Review
+username:
+account: grace-xuejing-li-visuals
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4020457
+bundleId: 4510494
+url: https://grace-xuejing-li-visuals.shinyapps.io/Group_G_HigherEd_Review/
+when: 1619195865.23742
+lastSyncTime: 1619195865.23746
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|.Rprofile|app.R|ourtheme.R|preprocessing/repay_rate_data.Rmd|preprocessing/scorecard_data.Rmd|preprocessing/wordcloud.Rmd|Process-Book.html|README.md

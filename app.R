@@ -392,6 +392,7 @@ TweetsMap <- leaflet() %>%
             pal = ppal,
             values = states_shape_tweets$Avg.Sentiment,
             opacity = 0.7) %>%
+  addPolylines(data = states_shape_tweets, color = "lightgrey", opacity = 0.2, weight = 2) %>%
   addLayersControl(
           overlayGroups =c("Twitter Sentiments", "Selective Institutions"),
           options = layersControlOptions(collapsed=FALSE),
@@ -557,27 +558,22 @@ ui <- shinydashboard::dashboardPage(
               fluidPage(
                 fluidRow(column(12, wellPanel(leafletOutput("tweetsmap")))),
                 fluidRow(align = "left",
-                         column(12, wellPanel(p("Lastly, we want to see if there's an overlap between the states that are most
-                     concerned about student loan forgiveness and where the selective schools are located. We added
-                     two layers on the map to showcase patterns. The first layer tells us which states are most
-                     concerned about student loan forgiveness by setting the radius of the circle to the total
-                     tweets word count. The gradient color scale shows the sentiment score of each state where
-                     red means a more negative average tweets sentiment and green means a more positive tweet
-                     sentiment on average. In addition, the popup window shows the top tweets keywords in each
-                     state after getting ride of most frequent keywords such as student, loan, debt,
-                     cancelstudentdebt, and amp. In California, not only do people tweet the most about student
-                     loan forgiveness, but they also have a more positive sentiment toward student loan forgiveness.
-                     Other areas where there are more discussions on student loan forgiveness concentrate along the
-                     coastal states. Midwestern states are least concerned about student loan forgiveness, and their
-                     tweets sentiment is also more negative.
+                         column(12, wellPanel(p("Lastly, we want to see if there's  an overlap between the states where student loan
+                         forgiveness is more discussed and the locations of the selective schools. We added two layers on the map
+                         to showcase patterns. The first layer tells us which states are most concerned about student loan
+                         forgiveness. The larger the circle, the higher the number of total tweets word count. The gradient
+                         color scale shows the sentiment score of each state, where red means a more negative average tweet sentiment and green means a more positive tweet
+                         sentiment on average. In addition, the popup window shows the top tweet keywords in each state after we
+                         got rid of the most frequent keywords such as student, loan, debt, Cancelstudentdebt, and amp. People tweet the most about student loan forgiveness in
+                         California. Other areas where there are more discussions on student loan forgiveness are states
+                         along the coastlines. Midwestern states are least concerned about student loan forgiveness.
                      
-                     The second layer shows where the selective institutions are located, where purple icon stands
-                     for elite universities, green icon stands for highly selective universities, and blue icon
-                     stands for selective universities. Overall, these selective universities are concentrated along the
-                     coastlines. On the west coast, most of the selective universities are in California. And the
-                     selective universities spread out more evenly on the east coast. Overall, we can see an overlap
-                     by looking at the two layers together. States with higher concentration of selective schools
-                     are also where people are most concerned about student loan forgiveness."))))))
+                         The second layer shows where the selective institutions are. Elite universities are in purple, highly
+                            selective universities are in green, and the blue markers are selective universities. Overall, these
+                            selective universities concentrate along the coastlines. On the west coast, most of the
+                            selective universities are in California. The selective universities spread out more evenly on the east
+                            coast. Overall, we can see an overlap by looking at the two layers together. States with a higher
+                            concentration of selective schools are also where student loan forgiveness is the most discussed."))))))
     ) # tabItems
   ) # dashboard Body
 ) # ui?
