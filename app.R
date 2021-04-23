@@ -102,7 +102,7 @@ repay_rate_ave <- ggplot(repay_rate_ave_df,
   ggtitle("Cohort Performance in First Year of Repayment") +
   xlab("\nFiscal Cohort Year") + ylab("Average Proportion of Fiscal Cohort\nto Decline Loan Balance\n") +
   labs(caption = "\n*Fiscal Cohort: group of students who begin repaying their loans in the same year") +
-  scale_color_brewer(name = "Family Income:", labels = c("High", "Medium", "Low"), palette = "Greens", direction = -1) +
+  scale_color_manual(name = "Family Income:", labels = c("High", "Medium", "Low"), values = GreenPal) +
   scale_y_continuous(labels = scales::dollar_format(suffix = "%", prefix = "")) +
   scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
   ourtheme
@@ -405,10 +405,10 @@ ui <- shinydashboard::dashboardPage(
               fluidPage(
                 tags$div(
                   tags$h1("Project Motivation"),
-                  column(12,p("In March 2021, President Biden announced a federal student laon cancellation program of over $2 billion dollars. 
+                  column(12,p("In March 2021, President Biden announced a federal student loan cancellation program of over $2 billion dollars. 
                   For much of the American public, this announcement reignited interest and discourse around the state of student debt 
                   in America. Even as some cry that this loan forgiveness program was an excessive and unnecessary government expense, 
-                  more and more people are pushing for universal student laon forgiveness. Based on the relevance of this topic, our team wished to  
+                  more and more people are pushing for universal student loan forgiveness. Based on the relevance of this topic, our team wished to  
                   better understand this topic from both a historical and a socioeconomic perspective, with the hope that this context could help
                   to shed light on the contemporary discourse around  student loan forgiveness policy.")),
                     
