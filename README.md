@@ -1,4 +1,4 @@
-## Group Project Public Repo for Review 
+## Group Project Repository (Comprehensive Code) 
 
 Group_G_HigherE
 
