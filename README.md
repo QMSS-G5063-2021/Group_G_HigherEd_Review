@@ -1,4 +1,4 @@
-## Group Project Repository (Comprehensive Code) 
+## Group Project Repository (Finalized Deliverable) 
 
 Group_G_HigherE
 
